@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>羽毛球课时记录系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .stats-section {
+            margin-top: 30px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .record-item {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .form-group {
+                margin-bottom: 12px;
+            }
+            
+            input, select, button {
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏸 羽毛球课时记录系统</h1>
+        
+        <div class="form-section">
+            <h2>📝 添加新记录</h2>
+            <form id="recordForm">
+                <div class="form-group">
+                    <label for="date">日期:</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="student">学员姓名:</label>
+                    <select id="student" required>
+                        <option value="">请选择学员</option>
+                        <option value="张三">张三</option>
+                        <option value="李四">李四</option>
+                        <option value="王五">王五</option>
+                        <option value="赵六">赵六</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration">课时长度(小时):</label>
+                    <input type="number" id="duration" step="0.5" min="0.5" max="4" placeholder="例如: 1.5" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">金额(元):</label>
+                    <input type="number" id="amount" min="0" placeholder="请输入金额" required>
+                </div>
+                
+                <button type="submit">➕ 添加记录</button>
+            </form>
+        </div>
+        
+        <div class="stats-section">
+            <h2>📊 统计数据</h2>
+            <div id="totalStats" style="margin-bottom: 20px; padding: 15px; background: #e9ecef; border-radius: 8px;">
+                <!-- 总统计数据显示在这里 -->
+            </div>
+            
+            <h3>📈 月度趋势图</h3>
+            <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            
+            <h3>👥 学员统计图</h3>
+            <div class="chart-container">
+                <canvas id="studentChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="records-section">
+            <h2>📋 所有记录</h2>
+            <div id="recordsList">
+                <!-- 记录列表显示在这里 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化数据
+        let records = JSON.parse(localStorage.getItem('badmintonRecords')) || [];
+        
+        // DOM元素
+        const form = document.getElementById('recordForm');
+        const dateInput = document.getElementById('date');
+        const studentInput = document.getElementById('student');
+        const durationInput = document.getElementById('duration');
+        const amountInput = document.getElementById('amount');
+        const recordsList = document.getElementById('recordsList');
+        const totalStats = document.getElementById('totalStats');
+        
+        // 设置默认日期为今天
+        dateInput.valueAsDate = new Date();
+        
+        // 表单提交事件
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const record = {
+                id: Date.now(),
+                date: dateInput.value,
+                student: studentInput.value,
+                duration: parseFloat(durationInput.value),
+                amount: parseFloat(amountInput.value)
+            };
+            
+            records.push(record);
+            localStorage.setItem('badmintonRecords', JSON.stringify(records));
+            
+            // 清空表单
+            form.reset();
+            dateInput.valueAsDate = new Date();
+            
+            // 更新显示
+            renderAll();
+        });
+        
+        // 删除记录函数
+        function deleteRecord(id) {
+            if(confirm('确定要删除这条记录吗？')) {
+                records = records.filter(record => record.id !== id);
+                localStorage.setItem('badmintonRecords', JSON.stringify(records));
+                renderAll();
+            }
+        }
+        
+        // 渲染总统计数据
+        function renderTotalStats() {
+            const totalAmount = records.reduce((sum, record) => sum + record.amount, 0);
+            const totalDuration = records.reduce((sum, record) => sum + record.duration, 0);
+            const recordCount = records.length;
+            
+            totalStats.innerHTML = `
+                <p><strong>总计:</strong></p>
+                <p>📝 记录数量: ${recordCount} 条</p>
+                <p>💰 总金额: ¥${totalAmount.toFixed(2)}</p>
+                <p>⏰ 总课时: ${totalDuration.toFixed(1)} 小时</p>
+                <p>💸 平均每条记录: ¥${recordCount > 0 ? (totalAmount / recordCount).toFixed(2) : 0}</p>
+            `;
+        }
+        
+        // 渲染记录列表
+        function renderRecordsList() {
+            if(records.length === 0) {
+                recordsList.innerHTML = '<p style="text-align: center; color: #666;">暂无记录</p>';
+                return;
+            }
+            
+            // 按日期倒序排列
+            const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            recordsList.innerHTML = sortedRecords.map(record => `
+                <div class="record-item">
+                    <div class="record-header">
+                        <div>
+                            <strong>${record.student}</strong> - 
+                            ${record.date} - 
+                            ${record.duration}小时 - 
+                            ¥${record.amount}
+                        </div>
+                        <button class="delete-btn" onclick="deleteRecord(${record.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 渲染月度统计图表
+        function renderMonthlyChart() {
+            // 按月份汇总数据
+            const monthlyData = {};
+            records.forEach(record => {
+                const month = record.date.substring(0, 7); // YYYY-MM
+                if(!monthlyData[month]) {
+                    monthlyData[month] = { amount: 0, count: 0, duration: 0 };
+                }
+                monthlyData[month].amount += record.amount;
+                monthlyData[month].count += 1;
+                monthlyData[month].duration += record.duration;
+            });
+            
+            const months = Object.keys(monthlyData).sort();
+            const amounts = months.map(m => monthlyData[m].amount);
+            const counts = months.map(m => monthlyData[m].count);
+            const durations = months.map(m => monthlyData[m].duration);
+            
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: '收入(元)',
+                        data: amounts,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0,123,255,0.1)',
+                        tension: 0.4
+                    }, {
+                        label: '课时(小时)',
+                        data: durations,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40,167,69,0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 渲染学员统计图表
+        function renderStudentChart() {
+            const studentData = {};
+            records.forEach(record => {
+                if(!studentData[record.student]) {
+                    studentData[record.student] = { amount: 0, count: 0, duration: 0 };
+                }
+                studentData[record.student].amount += record.amount;
+                studentData[record.student].count += 1;
+                studentData[record.student].duration += record.duration;
+            });
+            
+            const students = Object.keys(studentData);
+            const amounts = students.map(s => studentData[s].amount);
+            const counts = students.map(s => studentData[s].count);
+            
+            const ctx = document.getElementById('studentChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: students,
+                    datasets: [{
+                        label: '收入(元)',
+                        data: amounts,
+                        backgroundColor: 'rgba(255,99,132,0.6)',
+                        borderColor: 'rgba(255,99,132,1)',
+                        borderWidth: 1
+                    }, {
+                        label: '课次数',
+                        data: counts,
+                        backgroundColor: 'rgba(54,162,235,0.6)',
+                        borderColor: 'rgba(54,162,235,1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 渲染所有内容
+        function renderAll() {
+            renderTotalStats();
+            renderRecordsList();
+            renderMonthlyChart();
+            renderStudentChart();
+        }
+        
+        // 页面加载完成后渲染
+        window.onload = function() {
+            renderAll();
+        };
+        
+        // 使删除函数在全局作用域可用
+        window.deleteRecord = deleteRecord;
+    </script>
+</body>
+</html>
