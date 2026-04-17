@@ -2,166 +2,448 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>羽毛球课时记录系统</title>
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0;
         }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 10px;
+            font-size: 14px;
+        }
+        
         .container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            padding: 20px;
+            padding: 15px;
         }
+        
+        h1 {
+            text-align: center;
+            color: #409EFF;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+        
+        h2, h3 {
+            color: #303133;
+            margin: 15px 0 10px;
+            font-size: 1.2em;
+        }
+        
         .form-section {
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
             border: 1px solid #ebeef5;
             border-radius: 4px;
+            background-color: #fafafa;
         }
-        .charts-section {
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #606266;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+        }
+        
+        .btn-default {
+            background-color: #c0c4cc;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        .btn-edit {
+            background-color: #e6a23c;
+            color: white;
+        }
+        
+        .btn-row {
             display: flex;
-            gap: 20px;
-            margin-top: 30px;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-block {
+            flex: 1;
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 15px 0;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+            font-size: 13px;
+        }
+        
+        th {
+            background-color: #f5f7fa;
+            font-weight: 600;
+            color: #606266;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            background-color: #ecf5ff;
+            color: #409eff;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #909399;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-100%);
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.success {
+            background-color: #67c23a;
+        }
+        
+        .notification.error {
+            background-color: #f56c6c;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
             flex-wrap: wrap;
         }
-        .chart-container {
-            flex: 1;
-            min-width: 300px;
-            height: 400px;
-        }
-        .records-table {
-            margin-top: 30px;
-        }
-        .el-form-item {
-            margin-bottom: 18px;
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            body {
+                padding: 5px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .btn-row {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+                font-size: 12px;
+            }
+            
+            .tag {
+                font-size: 11px;
+                padding: 1px 4px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="app">
         <div class="container">
-            <h1 style="text-align: center; color: #409EFF;">羽毛球课时记录系统</h1>
+            <h1>羽毛球课时记录系统</h1>
+            
+            <!-- 同步状态 -->
+            <div class="sync-status">
+                状态: <span :style="{color: isSynced ? '#67C23A' : '#E6A23C'}">{{ isSynced ? '已同步' : '同步中...' }}</span>
+            </div>
             
             <!-- 表单部分 -->
             <div class="form-section">
                 <h2>添加课时记录</h2>
-                <el-form :model="recordForm" :rules="rules" ref="recordForm" label-width="100px">
-                    <el-row :gutter="20">
-                        <el-col :span="8">
-                            <el-form-item label="上课日期" prop="date">
-                                <el-date-picker
-                                    v-model="recordForm.date"
-                                    type="date"
-                                    placeholder="选择日期"
-                                    format="yyyy-MM-dd"
-                                    value-format="yyyy-MM-dd"
-                                    :picker-options="datePickerOptions"
-                                    style="width: 100%;">
-                                </el-date-picker>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="16">
-                            <el-form-item label="学生姓名" prop="students">
-                                <el-select 
-                                    v-model="recordForm.students" 
-                                    multiple 
-                                    filterable 
-                                    placeholder="请选择学生"
-                                    style="width: 100%;">
-                                    <el-option
-                                        v-for="student in students"
-                                        :key="student"
-                                        :label="student"
-                                        :value="student">
-                                    </el-option>
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                    
-                    <el-row :gutter="20">
-                        <el-col :span="8">
-                            <el-form-item label="总计时长" prop="totalHours">
-                                <el-input-number
-                                    v-model="recordForm.totalHours"
-                                    :precision="1"
-                                    :step="0.5"
-                                    :min="0"
-                                    placeholder="请输入总课时"
-                                    style="width: 100%;">
-                                </el-input-number>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item label="课程类型" prop="type">
-                                <el-radio-group v-model="recordForm.type">
-                                    <el-radio label="大课">大课</el-radio>
-                                    <el-radio label="私教">私教</el-radio>
-                                </el-radio-group>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item label="备注">
-                                <el-input v-model="recordForm.notes" placeholder="备注信息"></el-input>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                    
-                    <el-form-item>
-                        <el-button type="primary" @click="submitForm('recordForm')">提交记录</el-button>
-                        <el-button @click="resetForm('recordForm')">重置</el-button>
-                    </el-form-item>
-                </el-form>
-            </div>
-            
-            <!-- 图表部分 -->
-            <div class="charts-section">
-                <div class="chart-container">
-                    <h3>每月课时总数统计</h3>
-                    <canvas id="monthlyChart"></canvas>
+                
+                <!-- 上课时间 -->
+                <div class="form-group">
+                    <label>上课时间</label>
+                    <input type="date" v-model="recordForm.date">
                 </div>
-                <div class="chart-container">
-                    <h3>本月学生课时明细</h3>
-                    <canvas id="studentChart"></canvas>
+                
+                <!-- 学生姓名 -->
+                <div class="form-group">
+                    <label>学生姓名（可多选）</label>
+                    <select multiple v-model="selectedStudents">
+                        <option v-for="student in students" :value="student">{{student}}</option>
+                    </select>
+                    <div style="margin-top: 5px;">
+                        <span class="tag" v-for="student in selectedStudents" :key="student">
+                            {{student}}
+                            <button @click="removeStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- 总计时长 -->
+                <div class="form-group">
+                    <label>总计时长（小时）</label>
+                    <input type="number" v-model.number="recordForm.totalHours" step="0.5" min="0">
+                </div>
+                
+                <!-- 课程类型 -->
+                <div class="form-group">
+                    <label>课程类型</label>
+                    <select v-model="recordForm.type">
+                        <option value="">请选择课程类型</option>
+                        <option value="大课">大课</option>
+                        <option value="私教">私教</option>
+                    </select>
+                </div>
+                
+                <!-- 备注 -->
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea v-model="recordForm.notes" rows="3"></textarea>
+                </div>
+                
+                <!-- 提交记录 重置 按钮在一行 -->
+                <div class="btn-row">
+                    <button class="btn btn-primary btn-block" @click="submitForm" :disabled="!isOnline">
+                        提交记录 {{ !isOnline ? '(离线)' : '' }}
+                    </button>
+                    <button class="btn btn-default btn-block" @click="resetForm">重置</button>
                 </div>
             </div>
             
-            <!-- 记录表格 -->
-            <div class="records-table">
+            <!-- 加载状态 -->
+            <div v-if="loading" class="loading">
+                <div>加载中...</div>
+            </div>
+            
+            <!-- 每月课时总计统计表 -->
+            <div class="table-responsive">
+                <h3>每月课时总计统计表</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>总课时</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in monthlyStats" :key="index">
+                            <td>{{item.month}}</td>
+                            <td>{{item.totalHours}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 本月学生课时明细 -->
+            <div class="table-responsive">
+                <h3>本月学生课时明细</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>学生姓名</th>
+                            <th>课时</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in currentMonthStats" :key="index">
+                            <td>{{item.student}}</td>
+                            <td>{{item.hours}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 完整记录表格（隐藏，仅用于调试） -->
+            <div class="table-responsive" style="display: none;">
                 <h3>课时记录详情</h3>
-                <el-table :data="records" style="width: 100%" stripe>
-                    <el-table-column prop="date" label="上课日期" width="120"></el-table-column>
-                    <el-table-column label="学生姓名" width="300">
-                        <template slot-scope="scope">
-                            <el-tag 
-                                v-for="student in scope.row.students" 
-                                :key="student" 
-                                size="small" 
-                                style="margin-right: 5px;">
-                                {{student}}
-                            </el-tag>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="totalHours" label="总计时长" width="100"></el-table-column>
-                    <el-table-column prop="type" label="课程类型" width="100"></el-table-column>
-                    <el-table-column prop="notes" label="备注"></el-table-column>
-                </el-table>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>学生</th>
+                            <th>时长</th>
+                            <th>类型</th>
+                            <th>备注</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(record, index) in records" :key="record.id || index">
+                            <td>{{record.date}}</td>
+                            <td>
+                                <div v-for="student in record.students" :key="student" class="tag">
+                                    {{student}}
+                                </div>
+                            </td>
+                            <td>{{record.totalHours}}</td>
+                            <td>{{record.type}}</td>
+                            <td>{{record.notes}}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-edit" @click="editRecord(record, index)">编辑</button>
+                                    <button class="btn btn-danger" @click="deleteRecord(record, index)">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+        </div>
+        
+        <!-- 编辑弹窗 -->
+        <div v-if="showEditModal" class="modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+                <h3>编辑记录</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>上课日期</label>
+                        <input type="date" v-model="editingRecord.date">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>学生姓名（可多选）</label>
+                        <select multiple v-model="editingSelectedStudents">
+                            <option v-for="student in students" :value="student">{{student}}</option>
+                        </select>
+                        <div style="margin-top: 5px;">
+                            <span class="tag" v-for="student in editingSelectedStudents" :key="student">
+                                {{student}}
+                                <button @click="removeEditingStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>总计时长（小时）</label>
+                        <input type="number" v-model.number="editingRecord.totalHours" step="0.5" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>课程类型</label>
+                        <select v-model="editingRecord.type">
+                            <option value="">请选择课程类型</option>
+                            <option value="大课">大课</option>
+                            <option value="私教">私教</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>备注</label>
+                        <textarea v-model="editingRecord.notes" rows="2"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" @click="saveEdit">保存修改</button>
+                    <button class="btn btn-default btn-block" @click="cancelEdit">取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通知组件 -->
+        <div class="notification" :class="{ show: notification.show, [notification.type]: true }">
+            {{ notification.message }}
         </div>
     </div>
 
     <script>
+        // 应用配置 - 替换为你的Google Apps Script部署URL
+        const CONFIG = {
+            // 将这里的URL替换为你的Google Apps Script Web App URL
+            backendUrl: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+            // 添加一个本地缓存键，以便离线使用
+            cacheKey: 'badminton_records_v1'
+        };
+
         new Vue({
             el: '#app',
             data() {
@@ -173,25 +455,18 @@
                         type: '',
                         notes: ''
                     },
-                    rules: {
-                        date: [
-                            { required: true, message: '请选择上课日期', trigger: 'change' }
-                        ],
-                        students: [
-                            { required: true, message: '请选择学生姓名', trigger: 'change' }
-                        ],
-                        totalHours: [
-                            { required: true, message: '请输入总计时长', trigger: 'blur' },
-                            { type: 'number', min: 0, message: '课时不能为负数', trigger: 'blur' }
-                        ],
-                        type: [
-                            { required: true, message: '请选择课程类型', trigger: 'change' }
-                        ]
-                    },
-                    datePickerOptions: {
-                        disabledDate(time) {
-                            return time.getTime() > Date.now();
-                        }
+                    selectedStudents: [],
+                    editingRecord: {},
+                    editingSelectedStudents: [],
+                    editingIndex: -1,
+                    showEditModal: false,
+                    loading: true,
+                    isSynced: false,
+                    isOnline: navigator.onLine,
+                    notification: {
+                        show: false,
+                        message: '',
+                        type: 'success'
                     },
                     students: [
                         "严晨奕/严晨硕", "严晨硕", "付予诺", "刘子翚", "刘恒硕", "刘诗慧", "初荷", "包芯琪", 
@@ -200,17 +475,29 @@
                         "王则沣", "王景怡", "王然", "王远航/王嘉航", "田玉娇", "耿培轩", "臧景悠", 
                         "贡雨桐", "赵艺雯", "逯一辰", "邱广超", "邱硕", "韩家豪", "高梓淇"
                     ],
-                    records: JSON.parse(localStorage.getItem('badmintonRecords')) || []
+                    records: [],
+                    monthlyStats: [],
+                    currentMonthStats: []
                 }
             },
-            mounted() {
-                this.initCharts();
+            created() {
+                // 监听网络状态变化
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.loadRecords(); // 网络恢复时重新加载数据
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                });
+                
+                // 初始化加载数据
+                this.loadRecords();
             },
             watch: {
                 records: {
-                    handler(newVal) {
-                        localStorage.setItem('badmintonRecords', JSON.stringify(newVal));
-                        this.updateCharts();
+                    handler() {
+                        this.calculateStats();
                     },
                     deep: true
                 }
@@ -223,79 +510,54 @@
                     const day = String(today.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
                 },
-                submitForm(formName) {
-                    this.$refs[formName].validate((valid) => {
-                        if (valid) {
-                            // 添加新记录
-                            const newRecord = { ...this.recordForm };
-                            this.records.push(newRecord);
-                            
-                            // 显示成功消息
-                            this.$message.success('课时记录提交成功！');
-                            
-                            // 重置表单
-                            this.resetForm(formName);
-                        } else {
-                            console.log('error submit!!');
-                            return false;
-                        }
-                    });
+                
+                removeStudent(student) {
+                    const index = this.selectedStudents.indexOf(student);
+                    if (index > -1) {
+                        this.selectedStudents.splice(index, 1);
+                    }
                 },
-                resetForm(formName) {
-                    this.$refs[formName].resetFields();
-                    this.recordForm.date = this.getDefaultDate();
+                
+                removeEditingStudent(student) {
+                    const index = this.editingSelectedStudents.indexOf(student);
+                    if (index > -1) {
+                        this.editingSelectedStudents.splice(index, 1);
+                    }
                 },
-                initCharts() {
-                    // 初始化图表实例
-                    this.monthlyChart = new Chart(document.getElementById('monthlyChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: [],
-                            datasets: [{
-                                label: '月度课时总数',
-                                data: [],
-                                backgroundColor: 'rgba(64, 158, 255, 0.6)',
-                                borderColor: 'rgba(64, 158, 255, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-
-                    this.studentChart = new Chart(document.getElementById('studentChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: [],
-                            datasets: [{
-                                label: '学生课时明细',
-                                data: [],
-                                backgroundColor: 'rgba(103, 194, 58, 0.6)',
-                                borderColor: 'rgba(103, 194, 58, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            indexAxis: 'y',
-                            responsive: true,
-                            scales: {
-                                x: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
+                
+                async loadRecords() {
+                    this.loading = true;
                     
-                    this.updateCharts();
+                    try {
+                        // 首先尝试从本地缓存加载
+                        const cached = localStorage.getItem(CONFIG.cacheKey);
+                        if (cached) {
+                            this.records = JSON.parse(cached);
+                        }
+                        
+                        // 如果在线，尝试从服务器获取最新数据
+                        if (this.isOnline) {
+                            const response = await fetch(`${CONFIG.backendUrl}?action=getRecords`);
+                            const data = await response.json();
+                            
+                            if (data && Array.isArray(data)) {
+                                this.records = data;
+                                // 更新本地缓存
+                                localStorage.setItem(CONFIG.cacheKey, JSON.stringify(data));
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载记录失败:', error);
+                        this.showNotification('加载数据失败，使用本地缓存', 'error');
+                    } finally {
+                        this.loading = false;
+                        this.isSynced = true;
+                        this.calculateStats();
+                    }
                 },
-                updateCharts() {
-                    // 更新月度统计图表
+                
+                calculateStats() {
+                    // 计算每月课时总计统计
                     const monthlyData = {};
                     this.records.forEach(record => {
                         const month = record.date.substring(0, 7); // YYYY-MM
@@ -305,12 +567,14 @@
                         monthlyData[month] += parseFloat(record.totalHours);
                     });
                     
-                    const months = Object.keys(monthlyData).sort();
-                    this.monthlyChart.data.labels = months;
-                    this.monthlyChart.data.datasets[0].data = months.map(m => monthlyData[m]);
-                    this.monthlyChart.update();
-
-                    // 更新本月学生明细图表
+                    this.monthlyStats = Object.entries(monthlyData)
+                        .map(([month, totalHours]) => ({
+                            month,
+                            totalHours: totalHours.toFixed(1)
+                        }))
+                        .sort((a, b) => b.month.localeCompare(a.month)); // 按月份倒序排列
+                    
+                    // 计算本月学生课时明细
                     const currentMonth = this.getCurrentMonth();
                     const studentData = {};
                     this.records
@@ -324,19 +588,203 @@
                             });
                         });
                     
-                    const sortedStudents = Object.entries(studentData)
-                        .sort((a, b) => b[1] - a[1])
-                        .map(([student, hours]) => ({ student, hours }));
-                    
-                    this.studentChart.data.labels = sortedStudents.map(s => s.student);
-                    this.studentChart.data.datasets[0].data = sortedStudents.map(s => s.hours);
-                    this.studentChart.update();
+                    this.currentMonthStats = Object.entries(studentData)
+                        .map(([student, hours]) => ({
+                            student,
+                            hours: hours.toFixed(1)
+                        }))
+                        .sort((a, b) => b.hours - a.hours); // 按课时降序排列
                 },
+                
                 getCurrentMonth() {
                     const today = new Date();
                     const year = today.getFullYear();
                     const month = String(today.getMonth() + 1).padStart(2, '0');
                     return `${year}-${month}`;
+                },
+                
+                async submitForm() {
+                    if (!this.validateForm()) return;
+                    
+                    const newRecord = {
+                        id: Date.now().toString(), // 临时ID，服务器会分配正式ID
+                        ...this.recordForm,
+                        students: [...this.selectedStudents]
+                    };
+                    
+                    try {
+                        if (this.isOnline) {
+                            // 在线模式：发送到服务器
+                            const response = await fetch(CONFIG.backendUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `action=addRecord&data=${encodeURIComponent(JSON.stringify(newRecord))}`
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                // 成功后重新加载数据
+                                newRecord.id = result.id; // 使用服务器分配的ID
+                                this.records.unshift(newRecord);
+                                this.resetForm();
+                                this.showNotification('记录提交成功！', 'success');
+                            } else {
+                                throw new Error(result.error || '提交失败');
+                            }
+                        } else {
+                            // 离线模式：保存到本地
+                            this.records.unshift(newRecord);
+                            this.resetForm();
+                            this.showNotification('记录已保存（离线），网络恢复后将自动同步', 'success');
+                        }
+                    } catch (error) {
+                        console.error('提交记录失败:', error);
+                        this.showNotification(`提交失败: ${error.message}`, 'error');
+                    }
+                },
+                
+                validateForm() {
+                    if (!this.recordForm.date) {
+                        this.showNotification('请选择上课日期', 'error');
+                        return false;
+                    }
+                    if (this.selectedStudents.length === 0) {
+                        this.showNotification('请选择至少一个学生', 'error');
+                        return false;
+                    }
+                    if (!this.recordForm.totalHours || this.recordForm.totalHours <= 0) {
+                        this.showNotification('请输入有效的总计时长', 'error');
+                        return false;
+                    }
+                    if (!this.recordForm.type) {
+                        this.showNotification('请选择课程类型', 'error');
+                        return false;
+                    }
+                    
+                    return true;
+                },
+                
+                resetForm() {
+                    this.recordForm = {
+                        date: this.getDefaultDate(),
+                        students: [],
+                        totalHours: null,
+                        type: '',
+                        notes: ''
+                    };
+                    this.selectedStudents = [];
+                },
+                
+                editRecord(record, index) {
+                    this.editingIndex = index;
+                    this.editingRecord = { ...record };
+                    this.editingSelectedStudents = [...record.students];
+                    this.showEditModal = true;
+                },
+                
+                async saveEdit() {
+                    if (!this.validateEditForm()) return;
+                    
+                    const updatedRecord = {
+                        ...this.editingRecord,
+                        students: [...this.editingSelectedStudents]
+                    };
+                    
+                    try {
+                        if (this.isOnline) {
+                            // 在线模式：更新服务器
+                            const response = await fetch(CONFIG.backendUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `action=updateRecord&data=${encodeURIComponent(JSON.stringify(updatedRecord))}`
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                // 更新本地数据
+                                this.$set(this.records, this.editingIndex, updatedRecord);
+                                this.showEditModal = false;
+                                this.showNotification('记录修改成功！', 'success');
+                            } else {
+                                throw new Error(result.error || '更新失败');
+                            }
+                        } else {
+                            // 离线模式：更新本地数据
+                            this.$set(this.records, this.editingIndex, updatedRecord);
+                            this.showEditModal = false;
+                            this.showNotification('记录已更新（离线），网络恢复后将自动同步', 'success');
+                        }
+                    } catch (error) {
+                        console.error('更新记录失败:', error);
+                        this.showNotification(`更新失败: ${error.message}`, 'error');
+                    }
+                },
+                
+                validateEditForm() {
+                    if (!this.editingRecord.date) {
+                        this.showNotification('请选择上课日期', 'error');
+                        return false;
+                    }
+                    if (this.editingSelectedStudents.length === 0) {
+                        this.showNotification('请选择至少一个学生', 'error');
+                        return false;
+                    }
+                    if (!this.editingRecord.totalHours || this.editingRecord.totalHours <= 0) {
+                        this.showNotification('请输入有效的总计时长', 'error');
+                        return false;
+                    }
+                    if (!this.editingRecord.type) {
+                        this.showNotification('请选择课程类型', 'error');
+                        return false;
+                    }
+                    
+                    return true;
+                },
+                
+                cancelEdit() {
+                    this.showEditModal = false;
+                },
+                
+                async deleteRecord(record, index) {
+                    if (!confirm('确定要删除这条记录吗？')) return;
+                    
+                    try {
+                        if (this.isOnline) {
+                            // 在线模式：从服务器删除
+                            const response = await fetch(`${CONFIG.backendUrl}?action=deleteRecord&id=${record.id}`);
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                this.records.splice(index, 1);
+                                this.showNotification('记录删除成功！', 'success');
+                            } else {
+                                throw new Error(result.error || '删除失败');
+                            }
+                        } else {
+                            // 离线模式：从本地删除
+                            this.records.splice(index, 1);
+                            this.showNotification('记录已删除（离线），网络恢复后将自动同步', 'success');
+                        }
+                    } catch (error) {
+                        console.error('删除记录失败:', error);
+                        this.showNotification(`删除失败: ${error.message}`, 'error');
+                    }
+                },
+                
+                showNotification(message, type) {
+                    this.notification.message = message;
+                    this.notification.type = type;
+                    this.notification.show = true;
+                    
+                    setTimeout(() => {
+                        this.notification.show = false;
+                    }, 3000);
                 }
             }
         });
