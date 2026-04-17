@@ -207,6 +207,22 @@
             flex-wrap: wrap;
         }
         
+        .month-filter {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .month-filter label {
+            white-space: nowrap;
+        }
+        
+        .month-filter select {
+            flex: 1;
+            min-width: 120px;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -222,6 +238,11 @@
             
             .btn-row {
                 flex-direction: column;
+            }
+            
+            .month-filter {
+                flex-direction: column;
+                align-items: stretch;
             }
             
             th, td {
@@ -325,9 +346,16 @@
                 </table>
             </div>
             
-            <!-- 本月学生课时明细 -->
+            <!-- 本月学生课时明细（带月份筛选器） -->
             <div class="table-responsive">
-                <h3>本月学生课时明细</h3>
+                <h3>学生课时明细</h3>
+                <div class="month-filter">
+                    <label>选择月份：</label>
+                    <select v-model="selectedMonth" @change="calculateCurrentMonthStats">
+                        <option value="">全部月份</option>
+                        <option v-for="monthStat in monthlyStats" :value="monthStat.month">{{monthStat.month}}</option>
+                    </select>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -336,7 +364,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, index) in currentMonthStats" :key="index">
+                        <tr v-for="(item, index) in filteredCurrentMonthStats" :key="index">
                             <td>{{item.student}}</td>
                             <td>{{item.hours}}</td>
                         </tr>
@@ -350,13 +378,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>日期</th>
-                            <th>学生</th>
-                            <th>时长</th>
-                            <th>类型</th>
-                            <th>备注</th>
-                            <th>操作</th>
-                        </tr>
+                        <th>日期</th>
+                        <th>学生</th>
+                        <th>时长</th>
+                        <th>类型</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
                     </thead>
                     <tbody>
                         <tr v-for="(record, index) in records" :key="record.id || index">
@@ -477,7 +505,9 @@
                     ],
                     records: [],
                     monthlyStats: [],
-                    currentMonthStats: []
+                    currentMonthStats: [],
+                    selectedMonth: '', // 新增：选中的月份
+                    filteredCurrentMonthStats: [] // 新增：筛选后的学生课时明细
                 }
             },
             created() {
@@ -498,8 +528,14 @@
                 records: {
                     handler() {
                         this.calculateStats();
+                        this.calculateCurrentMonthStats(); // 当记录变化时重新计算筛选后的数据
                     },
                     deep: true
+                },
+                selectedMonth: {
+                    handler() {
+                        this.calculateCurrentMonthStats(); // 当月份变化时重新计算筛选后的数据
+                    }
                 }
             },
             methods: {
@@ -553,6 +589,7 @@
                         this.loading = false;
                         this.isSynced = true;
                         this.calculateStats();
+                        this.calculateCurrentMonthStats();
                     }
                 },
                 
@@ -573,22 +610,30 @@
                             totalHours: totalHours.toFixed(1)
                         }))
                         .sort((a, b) => b.month.localeCompare(a.month)); // 按月份倒序排列
+                },
+                
+                calculateCurrentMonthStats() {
+                    // 根据选中的月份计算学生课时明细
+                    let filteredRecords = this.records;
                     
-                    // 计算本月学生课时明细
-                    const currentMonth = this.getCurrentMonth();
+                    if (this.selectedMonth) {
+                        // 如果选择了特定月份，只过滤该月份的数据
+                        filteredRecords = this.records.filter(record => 
+                            record.date.startsWith(this.selectedMonth)
+                        );
+                    }
+                    
                     const studentData = {};
-                    this.records
-                        .filter(record => record.date.startsWith(currentMonth))
-                        .forEach(record => {
-                            record.students.forEach(student => {
-                                if (!studentData[student]) {
-                                    studentData[student] = 0;
-                                }
-                                studentData[student] += parseFloat(record.totalHours) / record.students.length;
-                            });
+                    filteredRecords.forEach(record => {
+                        record.students.forEach(student => {
+                            if (!studentData[student]) {
+                                studentData[student] = 0;
+                            }
+                            studentData[student] += parseFloat(record.totalHours) / record.students.length;
                         });
+                    });
                     
-                    this.currentMonthStats = Object.entries(studentData)
+                    this.filteredCurrentMonthStats = Object.entries(studentData)
                         .map(([student, hours]) => ({
                             student,
                             hours: hours.toFixed(1)
