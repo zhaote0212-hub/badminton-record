@@ -122,12 +122,6 @@
             margin: 0;
         }
         
-        .chart-container {
-            width: 100%;
-            height: 300px;
-            margin: 15px 0;
-        }
-        
         .table-responsive {
             overflow-x: auto;
             margin-top: 20px;
@@ -277,10 +271,10 @@
                     <input type="date" v-model="recordForm.date">
                 </div>
                 
-                <!-- 学生姓名 -->
+                <!-- 学生姓名 (修复：使用原生多选下拉) -->
                 <div class="form-group">
                     <label>学生姓名（可多选）</label>
-                    <select multiple v-model="selectedStudents">
+                    <select multiple v-model="selectedStudents" size="6">
                         <option v-for="student in students" :value="student">{{student}}</option>
                     </select>
                     <div style="margin-top: 5px;">
@@ -297,11 +291,10 @@
                     <input type="number" v-model.number="recordForm.totalHours" step="0.5" min="0">
                 </div>
                 
-                <!-- 课程类型 -->
+                <!-- 课程类型 (修复：默认为大课) -->
                 <div class="form-group">
                     <label>课程类型</label>
                     <select v-model="recordForm.type">
-                        <option value="">请选择课程类型</option>
                         <option value="大课">大课</option>
                         <option value="私教">私教</option>
                     </select>
@@ -421,7 +414,7 @@
                     
                     <div class="form-group">
                         <label>学生姓名（可多选）</label>
-                        <select multiple v-model="editingSelectedStudents">
+                        <select multiple v-model="editingSelectedStudents" size="6">
                             <option v-for="student in students" :value="student">{{student}}</option>
                         </select>
                         <div style="margin-top: 5px;">
@@ -440,7 +433,6 @@
                     <div class="form-group">
                         <label>课程类型</label>
                         <select v-model="editingRecord.type">
-                            <option value="">请选择课程类型</option>
                             <option value="大课">大课</option>
                             <option value="私教">私教</option>
                         </select>
@@ -466,9 +458,7 @@
     <script>
         // 应用配置 - 替换为你的Google Apps Script部署URL
         const CONFIG = {
-            // 将这里的URL替换为你的Google Apps Script Web App URL
             backendUrl: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
-            // 添加一个本地缓存键，以便离线使用
             cacheKey: 'badminton_records_v1'
         };
 
@@ -480,7 +470,7 @@
                         date: this.getDefaultDate(),
                         students: [],
                         totalHours: null,
-                        type: '',
+                        type: '大课', // 修复：默认为大课
                         notes: ''
                     },
                     selectedStudents: [],
@@ -506,20 +496,14 @@
                     records: [],
                     monthlyStats: [],
                     currentMonthStats: [],
-                    selectedMonth: '', // 新增：选中的月份
-                    filteredCurrentMonthStats: [] // 新增：筛选后的学生课时明细
+                    selectedMonth: '',
+                    filteredCurrentMonthStats: []
                 }
             },
             created() {
                 // 监听网络状态变化
-                window.addEventListener('online', () => {
-                    this.isOnline = true;
-                    this.loadRecords(); // 网络恢复时重新加载数据
-                });
-                
-                window.addEventListener('offline', () => {
-                    this.isOnline = false;
-                });
+                window.addEventListener('online', () => this.isOnline = true);
+                window.addEventListener('offline', () => this.isOnline = false);
                 
                 // 初始化加载数据
                 this.loadRecords();
@@ -528,13 +512,13 @@
                 records: {
                     handler() {
                         this.calculateStats();
-                        this.calculateCurrentMonthStats(); // 当记录变化时重新计算筛选后的数据
+                        this.calculateCurrentMonthStats();
                     },
                     deep: true
                 },
                 selectedMonth: {
                     handler() {
-                        this.calculateCurrentMonthStats(); // 当月份变化时重新计算筛选后的数据
+                        this.calculateCurrentMonthStats();
                     }
                 }
             },
@@ -549,36 +533,29 @@
                 
                 removeStudent(student) {
                     const index = this.selectedStudents.indexOf(student);
-                    if (index > -1) {
-                        this.selectedStudents.splice(index, 1);
-                    }
+                    if (index > -1) this.selectedStudents.splice(index, 1);
                 },
                 
                 removeEditingStudent(student) {
                     const index = this.editingSelectedStudents.indexOf(student);
-                    if (index > -1) {
-                        this.editingSelectedStudents.splice(index, 1);
-                    }
+                    if (index > -1) this.editingSelectedStudents.splice(index, 1);
                 },
                 
                 async loadRecords() {
                     this.loading = true;
                     
                     try {
-                        // 首先尝试从本地缓存加载
+                        // 从本地缓存加载
                         const cached = localStorage.getItem(CONFIG.cacheKey);
-                        if (cached) {
-                            this.records = JSON.parse(cached);
-                        }
+                        if (cached) this.records = JSON.parse(cached);
                         
-                        // 如果在线，尝试从服务器获取最新数据
+                        // 如果在线，从服务器获取最新数据
                         if (this.isOnline) {
                             const response = await fetch(`${CONFIG.backendUrl}?action=getRecords`);
                             const data = await response.json();
                             
                             if (data && Array.isArray(data)) {
                                 this.records = data;
-                                // 更新本地缓存
                                 localStorage.setItem(CONFIG.cacheKey, JSON.stringify(data));
                             }
                         }
@@ -594,14 +571,10 @@
                 },
                 
                 calculateStats() {
-                    // 计算每月课时总计统计
                     const monthlyData = {};
                     this.records.forEach(record => {
-                        const month = record.date.substring(0, 7); // YYYY-MM
-                        if (!monthlyData[month]) {
-                            monthlyData[month] = 0;
-                        }
-                        monthlyData[month] += parseFloat(record.totalHours);
+                        const month = record.date.substring(0, 7);
+                        monthlyData[month] = (monthlyData[month] || 0) + parseFloat(record.totalHours);
                     });
                     
                     this.monthlyStats = Object.entries(monthlyData)
@@ -609,15 +582,12 @@
                             month,
                             totalHours: totalHours.toFixed(1)
                         }))
-                        .sort((a, b) => b.month.localeCompare(a.month)); // 按月份倒序排列
+                        .sort((a, b) => b.month.localeCompare(a.month));
                 },
                 
                 calculateCurrentMonthStats() {
-                    // 根据选中的月份计算学生课时明细
                     let filteredRecords = this.records;
-                    
                     if (this.selectedMonth) {
-                        // 如果选择了特定月份，只过滤该月份的数据
                         filteredRecords = this.records.filter(record => 
                             record.date.startsWith(this.selectedMonth)
                         );
@@ -626,10 +596,8 @@
                     const studentData = {};
                     filteredRecords.forEach(record => {
                         record.students.forEach(student => {
-                            if (!studentData[student]) {
-                                studentData[student] = 0;
-                            }
-                            studentData[student] += parseFloat(record.totalHours) / record.students.length;
+                            studentData[student] = (studentData[student] || 0) + 
+                                parseFloat(record.totalHours) / record.students.length;
                         });
                     });
                     
@@ -638,28 +606,20 @@
                             student,
                             hours: hours.toFixed(1)
                         }))
-                        .sort((a, b) => b.hours - a.hours); // 按课时降序排列
-                },
-                
-                getCurrentMonth() {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = String(today.getMonth() + 1).padStart(2, '0');
-                    return `${year}-${month}`;
+                        .sort((a, b) => b.hours - a.hours);
                 },
                 
                 async submitForm() {
                     if (!this.validateForm()) return;
                     
                     const newRecord = {
-                        id: Date.now().toString(), // 临时ID，服务器会分配正式ID
+                        id: Date.now().toString(),
                         ...this.recordForm,
                         students: [...this.selectedStudents]
                     };
                     
                     try {
                         if (this.isOnline) {
-                            // 在线模式：发送到服务器
                             const response = await fetch(CONFIG.backendUrl, {
                                 method: 'POST',
                                 headers: {
@@ -671,8 +631,7 @@
                             const result = await response.json();
                             
                             if (result.success) {
-                                // 成功后重新加载数据
-                                newRecord.id = result.id; // 使用服务器分配的ID
+                                newRecord.id = result.id;
                                 this.records.unshift(newRecord);
                                 this.resetForm();
                                 this.showNotification('记录提交成功！', 'success');
@@ -680,7 +639,6 @@
                                 throw new Error(result.error || '提交失败');
                             }
                         } else {
-                            // 离线模式：保存到本地
                             this.records.unshift(newRecord);
                             this.resetForm();
                             this.showNotification('记录已保存（离线），网络恢复后将自动同步', 'success');
@@ -717,7 +675,7 @@
                         date: this.getDefaultDate(),
                         students: [],
                         totalHours: null,
-                        type: '',
+                        type: '大课', // 修复：重置时也默认为大课
                         notes: ''
                     };
                     this.selectedStudents = [];
@@ -740,7 +698,6 @@
                     
                     try {
                         if (this.isOnline) {
-                            // 在线模式：更新服务器
                             const response = await fetch(CONFIG.backendUrl, {
                                 method: 'POST',
                                 headers: {
@@ -752,7 +709,6 @@
                             const result = await response.json();
                             
                             if (result.success) {
-                                // 更新本地数据
                                 this.$set(this.records, this.editingIndex, updatedRecord);
                                 this.showEditModal = false;
                                 this.showNotification('记录修改成功！', 'success');
@@ -760,7 +716,6 @@
                                 throw new Error(result.error || '更新失败');
                             }
                         } else {
-                            // 离线模式：更新本地数据
                             this.$set(this.records, this.editingIndex, updatedRecord);
                             this.showEditModal = false;
                             this.showNotification('记录已更新（离线），网络恢复后将自动同步', 'success');
@@ -801,7 +756,6 @@
                     
                     try {
                         if (this.isOnline) {
-                            // 在线模式：从服务器删除
                             const response = await fetch(`${CONFIG.backendUrl}?action=deleteRecord&id=${record.id}`);
                             const result = await response.json();
                             
@@ -812,7 +766,6 @@
                                 throw new Error(result.error || '删除失败');
                             }
                         } else {
-                            // 离线模式：从本地删除
                             this.records.splice(index, 1);
                             this.showNotification('记录已删除（离线），网络恢复后将自动同步', 'success');
                         }
