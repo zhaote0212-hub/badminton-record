@@ -1,416 +1,944 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>羽毛球课时记录系统</title>
-  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; background-color: #f5f5f5; padding: 15px; }
-
-    /* 表格样式 */
-    .table-responsive { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-    th { background-color: #f8f9fa; font-weight: 600; color: #555; }
-    tr:last-child td { border-bottom: none; }
-
-    /* 表单样式 */
-    .form-container { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
-    input[type="date"], input[type="number"], select, textarea { width: 100%; padding: 10px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 16px; }
-    textarea { resize: vertical; min-height: 80px; }
-    .tag { display: inline-block; background: #409eff; color: white; padding: 2px 8px; border-radius: 4px; margin: 2px; font-size: 12px; }
-    .tag button { background: none; border: none; color: white; margin-left: 5px; cursor: pointer; }
-
-    /* 按钮样式 */
-    .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
-    .btn-primary { background-color: #409eff; color: white; }
-    .btn-success { background-color: #67c23a; color: white; }
-    .btn-warning { background-color: #e6a23c; color: white; }
-    .btn-danger { background-color: #f56c6c; color: white; }
-    .btn-default { background-color: #909399; color: white; }
-    .btn:hover { opacity: 0.85; }
-
-    /* 弹窗样式 */
-    .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-    .popup-content { background: white; border-radius: 8px; max-width: 90vw; max-height: 80vh; width: 400px; overflow: hidden; display: flex; flex-direction: column; }
-    .popup-content h3 { margin: 0; padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee; text-align: center; }
-
-    /* 月份筛选器 */
-    .month-filter { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee; }
-    .month-filter label { margin-right: 10px; font-weight: 500; }
-    .month-filter select { padding: 6px 10px; border: 1px solid #dcdfe6; border-radius: 4px; }
-
-    /* 响应式表格 */
-    @media (max-width: 768px) {
-      th, td { padding: 8px 10px; font-size: 14px; }
-      .form-container { padding: 15px; }
-      .btn { padding: 8px 12px; font-size: 13px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>羽毛球课时记录系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #409EFF;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+        
+        h2, h3 {
+            color: #303133;
+            margin: 15px 0 10px;
+            font-size: 1.2em;
+        }
+        
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #606266;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #409EFF;
+            color: white;
+        }
+        
+        .btn-default {
+            background-color: #c0c4cc;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #f56c6c;
+            color: white;
+        }
+        
+        .btn-edit {
+            background-color: #e6a23c;
+            color: white;
+        }
+        
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-block {
+            flex: 1;
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+            font-size: 13px;
+        }
+        
+        th {
+            background-color: #f5f7fa;
+            font-weight: 600;
+            color: #606266;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            background-color: #ecf5ff;
+            color: #409eff;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #909399;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-100%);
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.success {
+            background-color: #67c23a;
+        }
+        
+        .notification.error {
+            background-color: #f56c6c;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .month-filter {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .month-filter label {
+            white-space: nowrap;
+        }
+        
+        .month-filter select {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        /* 微信友好弹窗样式 */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .checkbox-item:last-child {
+            border-bottom: none;
+        }
+        
+        .checkbox-input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            body {
+                padding: 5px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .btn-row {
+                flex-direction: column;
+            }
+            
+            .month-filter {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+                font-size: 12px;
+            }
+            
+            .tag {
+                font-size: 11px;
+                padding: 1px 4px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="app">
-    <h1>羽毛球课时记录系统</h1>
+    <div id="app">
+        <div class="container">
+            <h1>羽毛球课时记录系统</h1>
+            
+            <!-- 同步状态 -->
+            <div class="sync-status">
+                状态: <span :style="{color: isSynced ? '#67C23A' : '#E6A23C'}">{{ isSynced ? '已同步' : '同步中...' }}</span>
+            </div>
+            
+            <!-- 表单部分 -->
+            <div class="form-section">
+                <h2>添加课时记录</h2>
+                
+                <!-- 上课时间 -->
+                <div class="form-group">
+                    <label>上课时间</label>
+                    <input type="date" v-model="recordForm.date">
+                </div>
+                
+                <!-- 学生姓名 (微信友好版) -->
+                <div class="form-group">
+                    <label>学生姓名（可多选）</label>
+                    <div @click="showStudentPopup = true" style="border: 1px solid #dcdfe6; padding: 10px; border-radius: 4px; cursor: pointer; background-color: white;">
+                        <span v-if="selectedStudents.length === 0" style="color: #909399;">点击选择学生</span>
+                        <div v-else>
+                            <span class="tag" v-for="student in selectedStudents" :key="student">
+                                {{student}}
+                                <button @click.stop="removeStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- 添加记录表单 -->
-    <div class="form-container">
-      <h2>添加课时记录 
-        <button class="btn btn-default" @click="showStudentManager = true" style="font-size: 12px; padding: 2px 6px; vertical-align: middle;">管理名单</button>
-      </h2>
-      <form @submit.prevent="addRecord">
-        <div class="form-group">
-          <label for="date">日期</label>
-          <input type="date" id="date" v-model="recordForm.date" required>
+                <!-- 新增：添加新学生 -->
+                <div class="form-group">
+                    <label>添加新学生（可选，多个用逗号分隔）</label>
+                    <input 
+                        type="text" 
+                        v-model="newStudentsInput" 
+                        placeholder="例如：张三, 李四, 王五"
+                    >
+                </div>
+                
+                <!-- 总计时长 -->
+                <div class="form-group">
+                    <label>总计时长（小时）</label>
+                    <input type="number" v-model.number="recordForm.totalHours" step="0.5" min="0">
+                </div>
+                
+                <!-- 课程类型 -->
+                <div class="form-group">
+                    <label>课程类型</label>
+                    <select v-model="recordForm.type">
+                        <option value="大课">大课</option>
+                        <option value="私教">私教</option>
+                    </select>
+                </div>
+                
+                <!-- 备注 -->
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea v-model="recordForm.notes" rows="1" placeholder="备注（可选）" style="height: 36px;"></textarea>
+                </div>
+                
+                <!-- 提交记录 重置 按钮在一行 -->
+                <div class="btn-row">
+                    <button class="btn btn-primary btn-block" @click="submitForm" :disabled="!isOnline">
+                        提交记录 {{ !isOnline ? '(离线)' : '' }}
+                    </button>
+                    <button class="btn btn-default btn-block" @click="resetForm">重置</button>
+                </div>
+            </div>
+            
+            <!-- 加载状态 -->
+            <div v-if="loading" class="loading">
+                <div>加载中...</div>
+            </div>
+            
+            <!-- 每月课时总计统计表 -->
+            <div class="table-responsive">
+                <h3>每月课时总计统计表</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>总课时</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in monthlyStats" :key="index">
+                            <td>{{item.month}}</td>
+                            <td>{{item.totalHours}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 本月学生课时明细（带月份筛选器） -->
+            <div class="table-responsive">
+                <h3>学生课时明细</h3>
+                <div class="month-filter">
+                    <label>选择月份：</label>
+                    <select v-model="selectedMonth" @change="calculateCurrentMonthStats">
+                        <option value="">全部月份</option>
+                        <option v-for="monthStat in monthlyStats" :value="monthStat.month">{{monthStat.month}}</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>学生姓名</th>
+                            <th>课时</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in filteredCurrentMonthStats" :key="index">
+                            <td>{{item.student}}</td>
+                            <td>{{item.hours}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         
-        <div class="form-group">
-          <label>学生姓名（可多选）</label>
-          <div @click="showStudentPopup = true" style="border: 1px solid #dcdfe6; padding: 10px; border-radius: 4px; cursor: pointer; background-color: white;">
-            <span v-if="selectedStudents.length === 0" style="color: #909399;">点击选择学生</span>
-            <div v-else>
-              <span class="tag" v-for="student in selectedStudents" :key="student">
-                {{student}}
-                <button @click.stop="removeStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
-              </span>
+       <!-- 学生选择弹窗 -->
+        <div v-if="showStudentPopup" class="popup-overlay">
+          <div class="popup-content" style="display: flex; flex-direction: column; height: 100%;">
+            <h3 style="margin: 0 0 15px 0; text-align: center;">选择学生（可多选）</h3>
+        
+            <!-- 👇 所有学生都在这个 div 里，且只有它被 v-for -->
+            <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 10px;">
+                <!-- ✅ 只有这一行被 v-for，里面不能有按钮！ -->
+                <div 
+                  v-for="student in students"
+                  :key="student"
+                  @click="toggleStudentInPopup(student)"
+                  style="display:flex; align-items:center; padding:8px 10px; background:#f9f9f9; border-radius:4px; cursor:pointer;"
+                >
+                  <input type="checkbox" :checked="tempSelectedStudents.includes(student)" style="width:18px;height:18px;margin-right:8px;">
+                  <span>{{ student }}</span>
+                </div>
+              </div>
+            </div>
+        
+            <!-- ✅ 只有这里有一组按钮！不在 v-for 里！ -->
+            <div style="position:sticky; bottom:0; background:white; padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
+              <button class="btn btn-primary" @click="confirmSelection" style="flex:1;">确定</button>
+              <button class="btn btn-default" @click="showStudentPopup = false" style="flex:1;">取消</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑弹窗 -->
+        <div v-if="showEditModal" class="popup-overlay">
+            <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+                <h3>编辑记录</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>上课日期</label>
+                        <input type="date" v-model="editingRecord.date">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>学生姓名（可多选）</label>
+                        <div @click="showEditStudentPopup = true" style="border: 1px solid #dcdfe6; padding: 10px; border-radius: 4px; cursor: pointer; background-color: white;">
+                            <span v-if="editingSelectedStudents.length === 0" style="color: #909399;">点击选择学生</span>
+                            <div v-else>
+                                <span class="tag" v-for="student in editingSelectedStudents" :key="student">
+                                    {{student}}
+                                    <button @click.stop="removeEditingStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>总计时长（小时）</label>
+                        <input type="number" v-model.number="editingRecord.totalHours" step="0.5" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>课程类型</label>
+                        <select v-model="editingRecord.type">
+                            <option value="大课">大课</option>
+                            <option value="私教">私教</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>备注</label>
+                        <textarea v-model="editingRecord.notes" rows="1" placeholder="备注（可选）" style="height: 36px;"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" @click="saveEdit">保存修改</button>
+                    <button class="btn btn-default btn-block" @click="cancelEdit">取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 编辑弹窗的学生选择弹窗 -->
+        <div v-if="showEditStudentPopup" class="popup-overlay">
+          <div class="popup-content" style="display: flex; flex-direction: column; height: 100%;">
+            <!-- 标题 -->
+            <h3 style="margin: 0 0 15px 0; text-align: center;">选择学生（可多选）</h3>
+
+            <!-- 学生列表：每行3个 -->
+            <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;"> <!-- 留出底部按钮空间 -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 10px;">
+                <div 
+                  v-for="student in students" 
+                  :key="student"
+                  class="checkbox-item"
+                  style="
+                    display: flex; 
+                    align-items: center; 
+                    padding: 8px 10px;
+                    border-radius: 4px;
+                    background: #f9f9f9;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                  "
+                  @click="toggleEditStudentInPopup(student)"
+                >
+                  <input 
+                    type="checkbox" 
+                    :checked="tempEditSelectedStudents.includes(student)"
+                    class="checkbox-input"
+                    style="margin-right: 8px; width: 18px; height: 18px;"
+                    @change="() => {}" <!-- 阻止默认行为，用@click控制 -->
+                  >
+                  <span>{{ student }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 固定在底部的按钮（不滚动） -->
+            <div style="
+              position: sticky;
+              bottom: 0;
+              background: white;
+              padding: 15px;
+              border-top: 1px solid #eee;
+              display: flex;
+              gap: 10px;
+            ">
+              <button class="btn btn-primary" @click="confirmEditSelection" style="flex: 1;">确定</button>
+              <button class="btn btn-default" @click="showEditStudentPopup = false" style="flex: 1;">取消</button>
             </div>
           </div>
         </div>
         
-        <div class="form-group">
-          <label for="totalHours">总课时</label>
-          <input type="number" id="totalHours" v-model.number="recordForm.totalHours" step="0.5" min="0.5" placeholder="例如：1.0" required>
+        <!-- 通知组件 -->
+        <div class="notification" :class="{ show: notification.show, [notification.type]: true }">
+            {{ notification.message }}
         </div>
-        
-        <div class="form-group">
-          <label for="type">课程类型</label>
-          <select id="type" v-model="recordForm.type">
-            <option value="大课">大课</option>
-            <option value="小课">小课</option>
-            <option value="私教">私教</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="notes">备注</label>
-          <textarea id="notes" v-model="recordForm.notes" placeholder="可选"></textarea>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">提交记录</button>
-      </form>
     </div>
 
-    <!-- 本月学生课时明细（带月份筛选器） -->
-    <div class="table-responsive">
-      <h3>学生课时明细</h3>
-      <div class="month-filter">
-        <label>选择月份：</label>
-        <select v-model="selectedMonth" @change="calculateCurrentMonthStats">
-          <option value="">全部月份</option>
-          <option v-for="monthStat in monthlyStats" :value="monthStat.month" :key="monthStat.month">{{monthStat.month}}</option>
-        </select>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>学生姓名</th>
-            <th>课时</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, index) in filteredCurrentMonthStats" :key="index">
-            <td>{{item.student}}</td>
-            <td>{{item.hours}}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- Vue 必须加载 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
+    <script>
+        // 应用配置 - 替换为你的Google Apps Script部署URL
+        const CONFIG = {
+            backendUrl: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+            cacheKey: 'badminton_records_v1'
+        };
 
-    <!-- 学生选择弹窗 -->
-    <div v-if="showStudentPopup" class="popup-overlay">
-      <div class="popup-content" style="display: flex; flex-direction: column; height: 100%;">
-        <h3 style="margin: 0 0 15px 0; text-align: center;">选择学生（可多选）</h3>
-    
-        <!-- 👇 所有学生都在这个 div 里，且只有它被 v-for -->
-        <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;">
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 10px;">
-            <!-- ✅ 只有这一行被 v-for，里面不能有按钮！ -->
-            <div 
-              v-for="student in students"
-              :key="student"
-              @click="toggleStudentInPopup(student)"
-              style="display:flex; align-items:center; padding:8px 10px; background:#f9f9f9; border-radius:4px; cursor:pointer;"
-            >
-              <input type="checkbox" :checked="tempSelectedStudents.includes(student)" style="width:18px;height:18px;margin-right:8px;" @click.stop>
-              <span>{{ student }}</span>
-            </div>
-          </div>
-        </div>
-    
-        <!-- ✅ 只有这里有一组按钮！不在 v-for 里！ -->
-        <div style="position:sticky; bottom:0; background:white; padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
-          <button class="btn btn-primary" @click="confirmSelection" style="flex:1;">确定</button>
-          <button class="btn btn-default" @click="showStudentPopup = false" style="flex:1;">取消</button>
-        </div>
-      </div>
-    </div>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    recordForm: {
+                        date: this.getDefaultDate(),
+                        students: [],
+                        totalHours: null,
+                        type: '大课',
+                        notes: ''
+                    },
+                    selectedStudents: [],
+                    tempSelectedStudents: [], // 临时存储弹窗中的选择
+                    showStudentPopup: false,
+                    editingRecord: {},
+                    editingSelectedStudents: [],
+                    tempEditSelectedStudents: [],
+                    showEditStudentPopup: false,
+                    editingIndex: -1,
+                    showEditModal: false,
+                    loading: true,
+                    isSynced: false,
+                    isOnline: navigator.onLine,
+                    notification: {
+                        show: false,
+                        message: '',
+                        type: 'success'
+                    },
+                    students: [
+                        "严晨奕/严晨硕", "付予诺", "刘子翚", "刘恒硕", "刘诗慧", "初荷", "包芯琪", 
+                        "卢皓阳", "史震东", "商涵煦", "商湳然", "安哲修", "安婉玥", "宋江汉", "张俊哲", 
+                        "张博瑞", "张壹帆", "张斯程", "张梓熙", "张秋实", "徐睿晗", "李悦恒", "梁茜雯", 
+                        "王则沣", "王景怡", "王然", "王远航/王嘉航", "田玉娇", "耿培轩", "臧景悠", 
+                        "贡雨桐", "赵艺雯", "逯一辰", "邱广超", "邱硕", "韩家豪", "高梓淇"
+                    ],
+                    records: [],
+                    monthlyStats: [],
+                    currentMonthStats: [],
+                    selectedMonth: '',
+                    filteredCurrentMonthStats: [],
+                    // 新增：新学生输入框
+                    newStudentsInput: ''
+                }
+            },
+            created() {
+                // 监听网络状态变化
+                window.addEventListener('online', () => this.isOnline = true);
+                window.addEventListener('offline', () => this.isOnline = false);
+                
+                // 初始化加载数据
+                this.loadRecords();
+            },
+            watch: {
+                records: {
+                    handler() {
+                        this.calculateStats();
+                        this.calculateCurrentMonthStats();
+                    },
+                    deep: true
+                },
+                selectedMonth: {
+                    handler() {
+                        this.calculateCurrentMonthStats();
+                    }
+                }
+            },
+            methods: {
+                getDefaultDate() {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+                
+                removeStudent(student) {
+                    const index = this.selectedStudents.indexOf(student);
+                    if (index > -1) this.selectedStudents.splice(index, 1);
+                },
+                
+                removeEditingStudent(student) {
+                    const index = this.editingSelectedStudents.indexOf(student);
+                    if (index > -1) this.editingSelectedStudents.splice(index, 1);
+                },
+                
+                async loadRecords() {
+                    this.loading = true;
+                    
+                    try {
+                        // 从本地缓存加载
+                        const cached = localStorage.getItem(CONFIG.cacheKey);
+                        if (cached) this.records = JSON.parse(cached);
+                        
+                        // 如果在线，从服务器获取最新数据
+                        if (this.isOnline) {
+                            const response = await fetch(`${CONFIG.backendUrl}?action=getRecords`);
+                            const data = await response.json();
+                            
+                            if (data && Array.isArray(data)) {
+                                this.records = data;
+                                localStorage.setItem(CONFIG.cacheKey, JSON.stringify(data));
+                            }
+                        }
+                    } catch (error) {
+                        console.error('加载记录失败:', error);
+                        this.showNotification('加载数据失败，使用本地缓存', 'error');
+                    } finally {
+                        this.loading = false;
+                        this.isSynced = true;
+                        this.calculateStats();
+                        this.calculateCurrentMonthStats();
+                    }
+                },
+                
+                calculateStats() {
+                    const monthlyData = {};
+                    this.records.forEach(record => {
+                        const month = record.date.substring(0, 7);
+                        monthlyData[month] = (monthlyData[month] || 0) + parseFloat(record.totalHours);
+                    });
+                    
+                    this.monthlyStats = Object.entries(monthlyData)
+                        .map(([month, totalHours]) => ({
+                            month,
+                            totalHours: totalHours.toFixed(1)
+                        }))
+                        .sort((a, b) => b.month.localeCompare(a.month));
+                },
+                
+                calculateCurrentMonthStats() {
+                    let filteredRecords = this.records;
+                    if (this.selectedMonth) {
+                        filteredRecords = this.records.filter(record => 
+                            record.date.startsWith(this.selectedMonth)
+                        );
+                    }
+                    
+                    const studentData = {};
+                    filteredRecords.forEach(record => {
+                        record.students.forEach(student => {
+                            studentData[student] = (studentData[student] || 0) + 
+                                parseFloat(record.totalHours) / record.students.length;
+                        });
+                    });
+                    
+                    this.filteredCurrentMonthStats = Object.entries(studentData)
+                        .map(([student, hours]) => ({
+                            student,
+                            hours: hours.toFixed(1)
+                        }))
+                        .sort((a, b) => b.hours - a.hours);
+                },
+                
+                async submitForm() {
+                    if (!this.validateForm()) return;
 
-    <!-- 学生管理弹窗 -->
-    <div v-if="showStudentManager" class="popup-overlay">
-      <div class="popup-content">
-        <h3>学生名单管理</h3>
-        
-        <!-- 添加新学生 -->
-        <div style="margin-bottom: 15px; display: flex; gap: 5px;">
-          <input 
-            v-model="newStudentName" 
-            placeholder="输入新学生姓名" 
-            style="flex: 1; padding: 8px;"
-            @keyup.enter="addNewStudent"
-          >
-          <button class="btn btn-primary" @click="addNewStudent">添加</button>
-        </div>
-        
-        <!-- 批量导入按钮 -->
-        <div style="margin-bottom: 15px;">
-          <button class="btn btn-default" @click="importStudents">批量导入</button>
-        </div>
-        
-        <!-- 学生列表 -->
-        <div style="max-height: 300px; overflow-y: auto;">
-          <div 
-            v-for="student in students" 
-            :key="student"
-            style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;"
-          >
-            <span>{{ student }}</span>
-            <button class="btn btn-danger" @click="removeStudentFromList(student)" style="padding: 2px 8px; font-size: 12px;">删除</button>
-          </div>
-        </div>
-        
-        <div style="margin-top: 15px; text-align: center;">
-          <button class="btn btn-default" @click="showStudentManager = false">关闭</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    new Vue({
-      el: '#app',
-      data: {
-        records: [],
-        recordForm: {
-          date: this.getDefaultDate(),
-          students: [],
-          totalHours: null,
-          type: '大课',
-          notes: ''
-        },
-        selectedStudents: [],
-        tempSelectedStudents: [],
-        showStudentPopup: false,
-        showStudentManager: false,
-        newStudentName: '',
-        
-        // 使用本地存储的学生名单
-        students: this.loadStudentsFromLocalStorage(),
-        
-        // 统计相关
-        monthlyStats: [],
-        currentMonthStats: [],
-        filteredCurrentMonthStats: [],
-        selectedMonth: ''
-      },
-      
-      created() {
-        this.loadRecords();
-      },
-      
-      methods: {
-        getDefaultDate() {
-          const now = new Date();
-          return now.toISOString().split('T')[0];
-        },
-
-        // 从本地存储加载学生名单
-        loadStudentsFromLocalStorage() {
-          const saved = localStorage.getItem('badminton_students');
-          if (saved) {
-            try {
-              return JSON.parse(saved).sort();
-            } catch {
-              return this.getDefaultStudents();
+                    // 处理新增学生
+                    if (this.newStudentsInput.trim()) {
+                        const newStudents = this.newStudentsInput.split(',')
+                            .map(name => name.trim())
+                            .filter(name => name && !this.students.includes(name)); // 去重
+                        
+                        if (newStudents.length > 0) {
+                            this.students = [...this.students, ...newStudents].sort(); // 更新学生列表
+                        }
+                    }
+                    
+                    const newRecord = {
+                        id: Date.now().toString(),
+                        ...this.recordForm,
+                        students: [...this.selectedStudents]
+                    };
+                    
+                    try {
+                        if (this.isOnline) {
+                            const response = await fetch(CONFIG.backendUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `action=addRecord&data=${encodeURIComponent(JSON.stringify(newRecord))}`
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                newRecord.id = result.id;
+                                this.records.unshift(newRecord);
+                                this.resetForm();
+                                this.showNotification('记录提交成功！', 'success');
+                            } else {
+                                throw new Error(result.error || '提交失败');
+                            }
+                        } else {
+                            this.records.unshift(newRecord);
+                            this.resetForm();
+                            this.showNotification('记录已保存（离线），网络恢复后将自动同步', 'success');
+                        }
+                    } catch (error) {
+                        console.error('提交记录失败:', error);
+                        this.showNotification(`提交失败: ${error.message}`, 'error');
+                    }
+                },
+                
+                validateForm() {
+                    if (!this.recordForm.date) {
+                        this.showNotification('请选择上课日期', 'error');
+                        return false;
+                    }
+                    if (this.selectedStudents.length === 0) {
+                        this.showNotification('请选择至少一个学生', 'error');
+                        return false;
+                    }
+                    if (!this.recordForm.totalHours || this.recordForm.totalHours <= 0) {
+                        this.showNotification('请输入有效的总计时长', 'error');
+                        return false;
+                    }
+                    if (!this.recordForm.type) {
+                        this.showNotification('请选择课程类型', 'error');
+                        return false;
+                    }
+                    
+                    return true;
+                },
+                
+                resetForm() {
+                    this.recordForm = {
+                        date: this.getDefaultDate(),
+                        students: [],
+                        totalHours: null,
+                        type: '大课',
+                        notes: ''
+                    };
+                    this.selectedStudents = [];
+                    this.newStudentsInput = ''; // 清空新增学生输入框
+                },
+                
+                editRecord(record, index) {
+                    this.editingIndex = index;
+                    this.editingRecord = { ...record };
+                    this.editingSelectedStudents = [...record.students];
+                    this.tempEditSelectedStudents = [...record.students]; // 初始化编辑弹窗的选择
+                    this.showEditModal = true;
+                },
+                
+                async saveEdit() {
+                    if (!this.validateEditForm()) return;
+                    
+                    const updatedRecord = {
+                        ...this.editingRecord,
+                        students: [...this.editingSelectedStudents]
+                    };
+                    
+                    try {
+                        if (this.isOnline) {
+                            const response = await fetch(CONFIG.backendUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `action=updateRecord&data=${encodeURIComponent(JSON.stringify(updatedRecord))}`
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                this.$set(this.records, this.editingIndex, updatedRecord);
+                                this.showEditModal = false;
+                                this.showNotification('记录修改成功！', 'success');
+                            } else {
+                                throw new Error(result.error || '更新失败');
+                            }
+                        } else {
+                            this.$set(this.records, this.editingIndex, updatedRecord);
+                            this.showEditModal = false;
+                            this.showNotification('记录已更新（离线），网络恢复后将自动同步', 'success');
+                        }
+                    } catch (error) {
+                        console.error('更新记录失败:', error);
+                        this.showNotification(`更新失败: ${error.message}`, 'error');
+                    }
+                },
+                
+                validateEditForm() {
+                    if (!this.editingRecord.date) {
+                        this.showNotification('请选择上课日期', 'error');
+                        return false;
+                    }
+                    if (this.editingSelectedStudents.length === 0) {
+                        this.showNotification('请选择至少一个学生', 'error');
+                        return false;
+                    }
+                    if (!this.editingRecord.totalHours || this.editingRecord.totalHours <= 0) {
+                        this.showNotification('请输入有效的总计时长', 'error');
+                        return false;
+                    }
+                    if (!this.editingRecord.type) {
+                        this.showNotification('请选择课程类型', 'error');
+                        return false;
+                    }
+                    
+                    return true;
+                },
+                
+                cancelEdit() {
+                    this.showEditModal = false;
+                },
+                
+                async deleteRecord(record, index) {
+                    if (!confirm('确定要删除这条记录吗？')) return;
+                    
+                    try {
+                        if (this.isOnline) {
+                            const response = await fetch(`${CONFIG.backendUrl}?action=deleteRecord&id=${record.id}`);
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                this.records.splice(index, 1);
+                                this.showNotification('记录删除成功！', 'success');
+                            } else {
+                                throw new Error(result.error || '删除失败');
+                            }
+                        } else {
+                            this.records.splice(index, 1);
+                            this.showNotification('记录已删除（离线），网络恢复后将自动同步', 'success');
+                        }
+                    } catch (error) {
+                        console.error('删除记录失败:', error);
+                        this.showNotification(`删除失败: ${error.message}`, 'error');
+                    }
+                },
+                
+                showNotification(message, type) {
+                    this.notification.message = message;
+                    this.notification.type = type;
+                    this.notification.show = true;
+                    
+                    setTimeout(() => {
+                        this.notification.show = false;
+                    }, 3000);
+                },
+                
+                confirmSelection() {
+                    this.selectedStudents = [...this.tempSelectedStudents];
+                    this.showStudentPopup = false;
+                },
+                
+                confirmEditSelection() {
+                    this.editingSelectedStudents = [...this.tempEditSelectedStudents];
+                    this.showEditStudentPopup = false;
+                },
+                
+                // 新增：学生选择弹窗的切换函数
+                toggleStudentInPopup(student) {
+                  const index = this.tempSelectedStudents.indexOf(student);
+                  if (index > -1) {
+                    this.tempSelectedStudents.splice(index, 1);
+                  } else {
+                    this.tempSelectedStudents.push(student);
+                  }
+                },
+                
+                // 新增：编辑弹窗的学生切换函数
+                toggleEditStudentInPopup(student) {
+                  const index = this.tempEditSelectedStudents.indexOf(student);
+                  if (index > -1) {
+                    this.tempEditSelectedStudents.splice(index, 1);
+                  } else {
+                    this.tempEditSelectedStudents.push(student);
+                  }
+                }
             }
-          }
-          return this.getDefaultStudents();
-        },
-
-        // 保存学生名单到本地存储
-        saveStudentsToLocalStorage() {
-          localStorage.setItem('badminton_students', JSON.stringify(this.students));
-        },
-
-        // 默认初始学生名单（仅首次加载时使用）
-        getDefaultStudents() {
-          return [
-            "严晨奕/严晨硕", "付予诺", "刘子翚", "刘恒硕", "刘诗慧", "初荷", "包芯琪", 
-            "卢皓阳", "史震东", "商涵煦", "商湳然", "安哲修", "安婉玥", "宋江汉", "张俊哲", 
-            "张博瑞", "张壹帆", "张斯程", "张梓熙", "张秋实", "徐睿晗", "李悦恒", "梁茜雯", 
-            "王则沣", "王景怡", "王然", "王远航/王嘉航", "田玉娇", "耿培轩", "臧景悠", 
-            "贡雨桐", "赵艺雯", "逯一辰", "邱广超", "邱硕", "韩家豪", "高梓淇"
-          ];
-        },
-
-        loadRecords() {
-          const saved = localStorage.getItem('badminton_records');
-          if (saved) {
-            try {
-              this.records = JSON.parse(saved);
-            } catch {
-              this.records = [];
-            }
-          }
-          
-          this.calculateMonthlyStats();
-          this.calculateCurrentMonthStats();
-        },
-        
-        saveRecords() {
-          localStorage.setItem('badminton_records', JSON.stringify(this.records));
-        },
-        
-        addRecord() {
-          if (!this.recordForm.totalHours || this.selectedStudents.length === 0) {
-            alert('请填写总课时和至少选择一名学生');
-            return;
-          }
-          
-          const newRecord = {
-            id: Date.now(),
-            date: this.recordForm.date,
-            students: [...this.selectedStudents],
-            totalHours: this.recordForm.totalHours,
-            perStudentHours: this.recordForm.totalHours / this.selectedStudents.length,
-            type: this.recordForm.type,
-            notes: this.recordForm.notes
-          };
-          
-          this.records.push(newRecord);
-          this.saveRecords();
-          this.calculateMonthlyStats();
-          this.calculateCurrentMonthStats();
-          
-          // 重置表单
-          this.recordForm = {
-            date: this.getDefaultDate(),
-            students: [],
-            totalHours: null,
-            type: '大课',
-            notes: ''
-          };
-          this.selectedStudents = [];
-          
-          alert('记录添加成功！');
-        },
-        
-        calculateMonthlyStats() {
-          const statsMap = {};
-          this.records.forEach(record => {
-            const month = record.date.substring(0, 7); // YYYY-MM
-            if (!statsMap[month]) {
-              statsMap[month] = { month, records: [], totalHours: 0 };
-            }
-            
-            statsMap[month].records.push(record);
-            statsMap[month].totalHours += record.totalHours;
-          });
-          
-          this.monthlyStats = Object.values(statsMap).sort((a, b) => b.month.localeCompare(a.month));
-        },
-        
-        calculateCurrentMonthStats() {
-          let recordsToProcess = this.records;
-          if (this.selectedMonth) {
-            recordsToProcess = recordsToProcess.filter(r => r.date.startsWith(this.selectedMonth));
-          }
-          
-          const statsMap = {};
-          recordsToProcess.forEach(record => {
-            record.students.forEach(student => {
-              if (!statsMap[student]) {
-                statsMap[student] = 0;
-              }
-              statsMap[student] += record.perStudentHours;
-            });
-          });
-          
-          this.currentMonthStats = Object.entries(statsMap)
-            .map(([student, hours]) => ({ student, hours }))
-            .sort((a, b) => b.hours - a.hours);
-          
-          this.filteredCurrentMonthStats = this.currentMonthStats;
-        },
-        
-        // 学生选择相关方法
-        toggleStudentInPopup(student) {
-          const index = this.tempSelectedStudents.indexOf(student);
-          if (index > -1) {
-            this.tempSelectedStudents.splice(index, 1);
-          } else {
-            this.tempSelectedStudents.push(student);
-          }
-        },
-        
-        confirmSelection() {
-          this.selectedStudents = [...this.tempSelectedStudents];
-          this.showStudentPopup = false;
-        },
-        
-        removeStudent(student) {
-          const index = this.selectedStudents.indexOf(student);
-          if (index > -1) {
-            this.selectedStudents.splice(index, 1);
-          }
-        },
-
-        // 学生管理相关方法
-        addNewStudent() {
-          if (this.newStudentName.trim() && !this.students.includes(this.newStudentName.trim())) {
-            this.students.push(this.newStudentName.trim());
-            this.students.sort();
-            this.saveStudentsToLocalStorage();
-            this.newStudentName = '';
-          }
-        },
-
-        removeStudentFromList(studentToRemove) {
-          if (confirm(`确定要删除学生 "${studentToRemove}" 吗？`)) {
-            this.students = this.students.filter(s => s !== studentToRemove);
-            this.students.sort();
-            this.saveStudentsToLocalStorage();
-          }
-        },
-
-        importStudents() {
-          const input = prompt('请输入学生姓名，用逗号分隔：');
-          if (input) {
-            const newStudents = input.split(',')
-              .map(name => name.trim())
-              .filter(name => name && !this.students.includes(name));
-            
-            if (newStudents.length > 0) {
-              this.students = [...this.students, ...newStudents].sort();
-              this.saveStudentsToLocalStorage();
-              alert(`成功添加 ${newStudents.length} 名学生`);
-            }
-          }
-        }
-      }
-    });
-  </script>
+        });
+    </script>
 </body>
 </html>
