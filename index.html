@@ -413,58 +413,35 @@
             </div>
         </div>
         
-        <!-- 微信友好弹窗：选择学生（3列布局 + 固定底部按钮） -->
+       <!-- 学生选择弹窗 -->
         <div v-if="showStudentPopup" class="popup-overlay">
           <div class="popup-content" style="display: flex; flex-direction: column; height: 100%;">
-            <!-- 标题 -->
             <h3 style="margin: 0 0 15px 0; text-align: center;">选择学生（可多选）</h3>
-
-            <!-- 学生列表：每行3个 -->
-            <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;"> <!-- 留出底部按钮空间 -->
+        
+            <!-- 👇 所有学生都在这个 div 里，且只有它被 v-for -->
+            <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;">
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 10px;">
+                <!-- ✅ 只有这一行被 v-for，里面不能有按钮！ -->
                 <div 
-                  v-for="student in students" 
+                  v-for="student in students"
                   :key="student"
-                  class="checkbox-item"
-                  style="
-                    display: flex; 
-                    align-items: center; 
-                    padding: 8px 10px;
-                    border-radius: 4px;
-                    background: #f9f9f9;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                  "
                   @click="toggleStudentInPopup(student)"
+                  style="display:flex; align-items:center; padding:8px 10px; background:#f9f9f9; border-radius:4px; cursor:pointer;"
                 >
-                  <input 
-                    type="checkbox" 
-                    :checked="tempSelectedStudents.includes(student)"
-                    class="checkbox-input"
-                    style="margin-right: 8px; width: 18px; height: 18px;"
-                    @change="() => {}" <!-- 阻止默认行为，用@click控制 -->
-                  >
+                  <input type="checkbox" :checked="tempSelectedStudents.includes(student)" style="width:18px;height:18px;margin-right:8px;">
                   <span>{{ student }}</span>
                 </div>
               </div>
             </div>
-
-            <!-- 固定在底部的按钮（不滚动） -->
-            <div style="
-              position: sticky;
-              bottom: 0;
-              background: white;
-              padding: 15px;
-              border-top: 1px solid #eee;
-              display: flex;
-              gap: 10px;
-            ">
-              <button class="btn btn-primary" @click="confirmSelection" style="flex: 1;">确定</button>
-              <button class="btn btn-default" @click="showStudentPopup = false" style="flex: 1;">取消</button>
+        
+            <!-- ✅ 只有这里有一组按钮！不在 v-for 里！ -->
+            <div style="position:sticky; bottom:0; background:white; padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
+              <button class="btn btn-primary" @click="confirmSelection" style="flex:1;">确定</button>
+              <button class="btn btn-default" @click="showStudentPopup = false" style="flex:1;">取消</button>
             </div>
           </div>
         </div>
-        
+
         <!-- 编辑弹窗 -->
         <div v-if="showEditModal" class="popup-overlay">
             <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
