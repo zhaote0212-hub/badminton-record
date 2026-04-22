@@ -350,7 +350,7 @@
                 <!-- 备注 -->
                 <div class="form-group">
                     <label>备注</label>
-                    <textarea v-model="recordForm.notes" rows="3"></textarea>
+                    <textarea v-model="recordForm.notes" rows="1" placeholder="备注（可选）" style="height: 36px;"></textarea>
                 </div>
                 
                 <!-- 提交记录 重置 按钮在一行 -->
@@ -413,25 +413,56 @@
             </div>
         </div>
         
-        <!-- 微信友好弹窗：选择学生 -->
+        <!-- 微信友好弹窗：选择学生（3列布局 + 固定底部按钮） -->
         <div v-if="showStudentPopup" class="popup-overlay">
-            <div class="popup-content">
-                <h3>选择学生（可多选）</h3>
-                <div v-for="student in students" :key="student" class="checkbox-item">
-                    <input 
-                        type="checkbox" 
-                        :id="'student_' + student" 
-                        :value="student" 
-                        v-model="tempSelectedStudents"
-                        class="checkbox-input"
-                    >
-                    <label :for="'student_' + student" style="flex: 1; cursor: pointer;">{{ student }}</label>
+          <div class="popup-content" style="display: flex; flex-direction: column; height: 100%;">
+            <!-- 标题 -->
+            <h3 style="margin: 0 0 15px 0; text-align: center;">选择学生（可多选）</h3>
+
+            <!-- 学生列表：每行3个 -->
+            <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;"> <!-- 留出底部按钮空间 -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 10px;">
+                <div 
+                  v-for="student in students" 
+                  :key="student"
+                  class="checkbox-item"
+                  style="
+                    display: flex; 
+                    align-items: center; 
+                    padding: 8px 10px;
+                    border-radius: 4px;
+                    background: #f9f9f9;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                  "
+                  @click="toggleStudentInPopup(student)"
+                >
+                  <input 
+                    type="checkbox" 
+                    :checked="tempSelectedStudents.includes(student)"
+                    class="checkbox-input"
+                    style="margin-right: 8px; width: 18px; height: 18px;"
+                    @change="() => {}" <!-- 阻止默认行为，用@click控制 -->
+                  >
+                  <span>{{ student }}</span>
                 </div>
-                <div class="popup-actions">
-                    <button class="btn btn-primary" @click="confirmSelection">确定</button>
-                    <button class="btn btn-default" @click="showStudentPopup = false">取消</button>
-                </div>
+              </div>
             </div>
+
+            <!-- 固定在底部的按钮（不滚动） -->
+            <div style="
+              position: sticky;
+              bottom: 0;
+              background: white;
+              padding: 15px;
+              border-top: 1px solid #eee;
+              display: flex;
+              gap: 10px;
+            ">
+              <button class="btn btn-primary" @click="confirmSelection" style="flex: 1;">确定</button>
+              <button class="btn btn-default" @click="showStudentPopup = false" style="flex: 1;">取消</button>
+            </div>
+          </div>
         </div>
         
         <!-- 编辑弹窗 -->
@@ -472,7 +503,7 @@
                     
                     <div class="form-group">
                         <label>备注</label>
-                        <textarea v-model="editingRecord.notes" rows="2"></textarea>
+                        <textarea v-model="editingRecord.notes" rows="1" placeholder="备注（可选）" style="height: 36px;"></textarea>
                     </div>
                     
                     <button class="btn btn-primary btn-block" @click="saveEdit">保存修改</button>
@@ -483,23 +514,54 @@
         
         <!-- 编辑弹窗的学生选择弹窗 -->
         <div v-if="showEditStudentPopup" class="popup-overlay">
-            <div class="popup-content">
-                <h3>选择学生（可多选）</h3>
-                <div v-for="student in students" :key="student" class="checkbox-item">
-                    <input 
-                        type="checkbox" 
-                        :id="'edit_student_' + student" 
-                        :value="student" 
-                        v-model="tempEditSelectedStudents"
-                        class="checkbox-input"
-                    >
-                    <label :for="'edit_student_' + student" style="flex: 1; cursor: pointer;">{{ student }}</label>
+          <div class="popup-content" style="display: flex; flex-direction: column; height: 100%;">
+            <!-- 标题 -->
+            <h3 style="margin: 0 0 15px 0; text-align: center;">选择学生（可多选）</h3>
+
+            <!-- 学生列表：每行3个 -->
+            <div style="flex: 1; overflow-y: auto; padding-bottom: 60px;"> <!-- 留出底部按钮空间 -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 10px;">
+                <div 
+                  v-for="student in students" 
+                  :key="student"
+                  class="checkbox-item"
+                  style="
+                    display: flex; 
+                    align-items: center; 
+                    padding: 8px 10px;
+                    border-radius: 4px;
+                    background: #f9f9f9;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                  "
+                  @click="toggleEditStudentInPopup(student)"
+                >
+                  <input 
+                    type="checkbox" 
+                    :checked="tempEditSelectedStudents.includes(student)"
+                    class="checkbox-input"
+                    style="margin-right: 8px; width: 18px; height: 18px;"
+                    @change="() => {}" <!-- 阻止默认行为，用@click控制 -->
+                  >
+                  <span>{{ student }}</span>
                 </div>
-                <div class="popup-actions">
-                    <button class="btn btn-primary" @click="confirmEditSelection">确定</button>
-                    <button class="btn btn-default" @click="showEditStudentPopup = false">取消</button>
-                </div>
+              </div>
             </div>
+
+            <!-- 固定在底部的按钮（不滚动） -->
+            <div style="
+              position: sticky;
+              bottom: 0;
+              background: white;
+              padding: 15px;
+              border-top: 1px solid #eee;
+              display: flex;
+              gap: 10px;
+            ">
+              <button class="btn btn-primary" @click="confirmEditSelection" style="flex: 1;">确定</button>
+              <button class="btn btn-default" @click="showEditStudentPopup = false" style="flex: 1;">取消</button>
+            </div>
+          </div>
         </div>
         
         <!-- 通知组件 -->
@@ -546,7 +608,7 @@
                         type: 'success'
                     },
                     students: [
-                        "严晨奕/严晨硕", "严晨硕", "付予诺", "刘子翚", "刘恒硕", "刘诗慧", "初荷", "包芯琪", 
+                        "严晨奕/严晨硕", "付予诺", "刘子翚", "刘恒硕", "刘诗慧", "初荷", "包芯琪", 
                         "卢皓阳", "史震东", "商涵煦", "商湳然", "安哲修", "安婉玥", "宋江汉", "张俊哲", 
                         "张博瑞", "张壹帆", "张斯程", "张梓熙", "张秋实", "徐睿晗", "李悦恒", "梁茜雯", 
                         "王则沣", "王景怡", "王然", "王远航/王嘉航", "田玉娇", "耿培轩", "臧景悠", 
@@ -853,6 +915,26 @@
                 confirmEditSelection() {
                     this.editingSelectedStudents = [...this.tempEditSelectedStudents];
                     this.showEditStudentPopup = false;
+                },
+                
+                // 新增：学生选择弹窗的切换函数
+                toggleStudentInPopup(student) {
+                  const index = this.tempSelectedStudents.indexOf(student);
+                  if (index > -1) {
+                    this.tempSelectedStudents.splice(index, 1);
+                  } else {
+                    this.tempSelectedStudents.push(student);
+                  }
+                },
+                
+                // 新增：编辑弹窗的学生切换函数
+                toggleEditStudentInPopup(student) {
+                  const index = this.tempEditSelectedStudents.indexOf(student);
+                  if (index > -1) {
+                    this.tempEditSelectedStudents.splice(index, 1);
+                  } else {
+                    this.tempEditSelectedStudents.push(student);
+                  }
                 }
             }
         });
