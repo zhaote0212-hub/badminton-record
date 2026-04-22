@@ -217,6 +217,53 @@
             min-width: 120px;
         }
         
+        /* 微信友好弹窗样式 */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .checkbox-item:last-child {
+            border-bottom: none;
+        }
+        
+        .checkbox-input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -271,17 +318,17 @@
                     <input type="date" v-model="recordForm.date">
                 </div>
                 
-                <!-- 学生姓名 (修复：使用原生多选下拉) -->
+                <!-- 学生姓名 (微信友好版) -->
                 <div class="form-group">
                     <label>学生姓名（可多选）</label>
-                    <select multiple v-model="selectedStudents" size="6">
-                        <option v-for="student in students" :value="student">{{student}}</option>
-                    </select>
-                    <div style="margin-top: 5px;">
-                        <span class="tag" v-for="student in selectedStudents" :key="student">
-                            {{student}}
-                            <button @click="removeStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
-                        </span>
+                    <div @click="showStudentPopup = true" style="border: 1px solid #dcdfe6; padding: 10px; border-radius: 4px; cursor: pointer; background-color: white;">
+                        <span v-if="selectedStudents.length === 0" style="color: #909399;">点击选择学生</span>
+                        <div v-else>
+                            <span class="tag" v-for="student in selectedStudents" :key="student">
+                                {{student}}
+                                <button @click.stop="removeStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 
@@ -291,7 +338,7 @@
                     <input type="number" v-model.number="recordForm.totalHours" step="0.5" min="0">
                 </div>
                 
-                <!-- 课程类型 (修复：默认为大课) -->
+                <!-- 课程类型 -->
                 <div class="form-group">
                     <label>课程类型</label>
                     <select v-model="recordForm.type">
@@ -364,47 +411,32 @@
                     </tbody>
                 </table>
             </div>
-            
-            <!-- 完整记录表格（隐藏，仅用于调试） -->
-            <div class="table-responsive" style="display: none;">
-                <h3>课时记录详情</h3>
-                <table>
-                    <thead>
-                        <tr>
-                        <th>日期</th>
-                        <th>学生</th>
-                        <th>时长</th>
-                        <th>类型</th>
-                        <th>备注</th>
-                        <th>操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(record, index) in records" :key="record.id || index">
-                            <td>{{record.date}}</td>
-                            <td>
-                                <div v-for="student in record.students" :key="student" class="tag">
-                                    {{student}}
-                                </div>
-                            </td>
-                            <td>{{record.totalHours}}</td>
-                            <td>{{record.type}}</td>
-                            <td>{{record.notes}}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-edit" @click="editRecord(record, index)">编辑</button>
-                                    <button class="btn btn-danger" @click="deleteRecord(record, index)">删除</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        </div>
+        
+        <!-- 微信友好弹窗：选择学生 -->
+        <div v-if="showStudentPopup" class="popup-overlay">
+            <div class="popup-content">
+                <h3>选择学生（可多选）</h3>
+                <div v-for="student in students" :key="student" class="checkbox-item">
+                    <input 
+                        type="checkbox" 
+                        :id="'student_' + student" 
+                        :value="student" 
+                        v-model="tempSelectedStudents"
+                        class="checkbox-input"
+                    >
+                    <label :for="'student_' + student" style="flex: 1; cursor: pointer;">{{ student }}</label>
+                </div>
+                <div class="popup-actions">
+                    <button class="btn btn-primary" @click="confirmSelection">确定</button>
+                    <button class="btn btn-default" @click="showStudentPopup = false">取消</button>
+                </div>
             </div>
         </div>
         
         <!-- 编辑弹窗 -->
-        <div v-if="showEditModal" class="modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-            <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+        <div v-if="showEditModal" class="popup-overlay">
+            <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
                 <h3>编辑记录</h3>
                 <div class="form-row">
                     <div class="form-group">
@@ -414,14 +446,14 @@
                     
                     <div class="form-group">
                         <label>学生姓名（可多选）</label>
-                        <select multiple v-model="editingSelectedStudents" size="6">
-                            <option v-for="student in students" :value="student">{{student}}</option>
-                        </select>
-                        <div style="margin-top: 5px;">
-                            <span class="tag" v-for="student in editingSelectedStudents" :key="student">
-                                {{student}}
-                                <button @click="removeEditingStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
-                            </span>
+                        <div @click="showEditStudentPopup = true" style="border: 1px solid #dcdfe6; padding: 10px; border-radius: 4px; cursor: pointer; background-color: white;">
+                            <span v-if="editingSelectedStudents.length === 0" style="color: #909399;">点击选择学生</span>
+                            <div v-else>
+                                <span class="tag" v-for="student in editingSelectedStudents" :key="student">
+                                    {{student}}
+                                    <button @click.stop="removeEditingStudent(student)" style="background:none; border:none; color:white; margin-left:5px; cursor:pointer;">×</button>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     
@@ -449,12 +481,35 @@
             </div>
         </div>
         
+        <!-- 编辑弹窗的学生选择弹窗 -->
+        <div v-if="showEditStudentPopup" class="popup-overlay">
+            <div class="popup-content">
+                <h3>选择学生（可多选）</h3>
+                <div v-for="student in students" :key="student" class="checkbox-item">
+                    <input 
+                        type="checkbox" 
+                        :id="'edit_student_' + student" 
+                        :value="student" 
+                        v-model="tempEditSelectedStudents"
+                        class="checkbox-input"
+                    >
+                    <label :for="'edit_student_' + student" style="flex: 1; cursor: pointer;">{{ student }}</label>
+                </div>
+                <div class="popup-actions">
+                    <button class="btn btn-primary" @click="confirmEditSelection">确定</button>
+                    <button class="btn btn-default" @click="showEditStudentPopup = false">取消</button>
+                </div>
+            </div>
+        </div>
+        
         <!-- 通知组件 -->
         <div class="notification" :class="{ show: notification.show, [notification.type]: true }">
             {{ notification.message }}
         </div>
     </div>
 
+    <!-- Vue 必须加载 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.min.js"></script>
     <script>
         // 应用配置 - 替换为你的Google Apps Script部署URL
         const CONFIG = {
@@ -470,12 +525,16 @@
                         date: this.getDefaultDate(),
                         students: [],
                         totalHours: null,
-                        type: '大课', // 修复：默认为大课
+                        type: '大课',
                         notes: ''
                     },
                     selectedStudents: [],
+                    tempSelectedStudents: [], // 临时存储弹窗中的选择
+                    showStudentPopup: false,
                     editingRecord: {},
                     editingSelectedStudents: [],
+                    tempEditSelectedStudents: [],
+                    showEditStudentPopup: false,
                     editingIndex: -1,
                     showEditModal: false,
                     loading: true,
@@ -675,7 +734,7 @@
                         date: this.getDefaultDate(),
                         students: [],
                         totalHours: null,
-                        type: '大课', // 修复：重置时也默认为大课
+                        type: '大课',
                         notes: ''
                     };
                     this.selectedStudents = [];
@@ -685,6 +744,7 @@
                     this.editingIndex = index;
                     this.editingRecord = { ...record };
                     this.editingSelectedStudents = [...record.students];
+                    this.tempEditSelectedStudents = [...record.students]; // 初始化编辑弹窗的选择
                     this.showEditModal = true;
                 },
                 
@@ -783,6 +843,16 @@
                     setTimeout(() => {
                         this.notification.show = false;
                     }, 3000);
+                },
+                
+                confirmSelection() {
+                    this.selectedStudents = [...this.tempSelectedStudents];
+                    this.showStudentPopup = false;
+                },
+                
+                confirmEditSelection() {
+                    this.editingSelectedStudents = [...this.tempEditSelectedStudents];
+                    this.showEditStudentPopup = false;
                 }
             }
         });
